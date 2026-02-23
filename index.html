@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SAP HTML Generator</title>
+
+<style>
+:root{
+  /* --- Eisblau Clean Style --- */
+  --bg:#0f1c33;
+  --card:#162a4b;
+  --panel:#102544;
+
+  --txt:#eef5ff;
+  --muted:#b9cbe6;
+  --line:#2b4f86;
+
+  --acc:#60c4ff;      
+  --ok:#2ecc71;     
+
+  --shadow: rgba(0,0,0,.22);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--txt);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+  width:min(1100px,92vw);
+  margin:26px auto;
+  display:grid;
+  gap:14px;
+}
+
+.header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.hTitle{
+  font-weight:850;
+  font-size:17px;
+}
+
+.hHint{
+  color:var(--muted);
+  font-size:13px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:14px;
+  box-shadow:0 6px 18px var(--shadow);
+}
+
+.sectionTitle{
+  font-weight:800;
+  font-size:13px;
+  margin:2px 2px 10px;
+}
+
+label{
+  display:block;
+  font-size:13px;
+  color:var(--muted);
+  margin:0 0 6px 2px;
+}
+
+input[type="text"], textarea{
+  width:100%;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--txt);
+  padding:12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px;
+  line-height:1.45;
+  outline:none;
+  transition:.15s ease;
+}
+
+textarea{ min-height:110px; resize:vertical; }
+
+input:focus, textarea:focus{
+  border-color:var(--acc);
+  box-shadow:0 0 0 4px rgba(96,196,255,.14);
+}
+
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+@media (max-width:900px){
+  .grid2{grid-template-columns:1fr;}
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+button{
+  border-radius:14px;
+  padding:12px 14px;
+  border:1px solid rgba(96,196,255,.6);
+  background:rgba(96,196,255,.15);
+  color:var(--txt);
+  cursor:pointer;
+  transition:.15s ease;
+}
+
+button:hover{ transform:translateY(-1px); }
+button:active{ transform:translateY(0px); }
+
+button.secondary{
+  border-color:var(--line);
+  background:transparent;
+}
+
+button.ok{
+  border-color:rgba(46,204,113,.8);
+  background:rgba(46,204,113,.18);
+}
+
+.tabs{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.tab{
+  border-radius:999px;
+  padding:10px 14px;
+  border:1px solid var(--line);
+  background:transparent;
+  cursor:pointer;
+  color:var(--txt);
+}
+
+.tab.active{
+  border-color:var(--acc);
+  background:rgba(96,196,255,.18);
+  box-shadow:0 0 0 3px rgba(96,196,255,.10);
+}
+
+.hidden{display:none;}
+
+.out.ready{
+  border:1px solid rgba(46,204,113,.9);
+  background:rgba(46,204,113,.12);
+  box-shadow: inset 0 0 22px rgba(46,204,113,.15);
+}
+
+.small{
+  font-size:12px;
+  color:var(--muted);
+}
+
+hr.sep{
+  border:none;
+  border-top:1px solid var(--line);
+  margin:12px 0;
+  opacity:.9;
+}
+
+/* Popup */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:18px;
+}
+.modal.open{display:flex;}
+
+.modalCard{
+  width:min(980px,96vw);
+  max-height:86vh;
+  overflow:auto;
+  background:#1a355f;
+  border-radius:18px;
+  padding:16px;
+  border:1px solid var(--line);
+}
+
+.previewHead{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.previewTitle{
+  font-weight:850;
+  font-size:14px;
+}
+
+.previewBody{
+  background:#17325a;
+  border-radius:14px;
+  padding:14px;
+  border:1px solid var(--line);
+}
+
+.previewBody p{ margin:0 0 10px; }
+.previewBody ul{ margin:0 0 12px 18px; padding:0; }
+.previewBody li{ margin:4px 0; }
+.previewBody strong{ color:#ffffff; }
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div>
+      <div class="hTitle">SAP HTML Generator</div>
+      <div class="hHint">by Marsl</div>
+    </div>
+    <div class="row">
+      <button id="btnCopy" class="ok" type="button">HTML kopieren</button>
+      <button id="btnPreview" type="button">Ansicht</button>
+      <button id="btnClear" class="secondary" type="button">Leeren</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" id="tabLang" type="button">Langbeschrieb</button>
+      <button class="tab" id="tabKurz" type="button">Kurzbeschrieb</button>
+      <button class="tab" id="tabLink" type="button">Link-Generator</button>
+    </div>
+    <div class="small" style="margin-top:8px;">
+      Das Kopieren/Ansicht bezieht sich immer auf den aktuell aktiven Tab.
+    </div>
+  </div>
+
+  <!-- LANG -->
+  <div class="card" id="panelLang">
+    <div class="sectionTitle">SAP HTML-Langbeschrieb Generator</div>
+
+    <label for="lang">Langbeschreibung (egal wie du es hier eingibst - am Ende ist es ein Fliesstext)</label>
+    <textarea id="lang" placeholder="Hier Fliesstext eingeben..."></textarea>
+
+    <hr class="sep" />
+
+    <div class="sectionTitle">Auflistungen (5x)</div>
+
+    <!-- Auflistung 1 -->
+    <div class="card" style="padding:12px; border-radius:14px; margin:0 0 10px;">
+      <div class="sectionTitle">Auflistung 1</div>
+      <div class="grid2">
+        <div>
+          <label for="listTitle1">Titel</label>
+          <input id="listTitle1" type="text" placeholder="z.B. Vorteile" />
+        </div>
+        <div>
+          <label for="listLines1">Auflistung (eine Zeile = ein Punkt)</label>
+          <textarea id="listLines1" placeholder="Punkt 1&#10;Punkt 2&#10;Punkt 3"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auflistung 2 -->
+    <div class="card" style="padding:12px; border-radius:14px; margin:0 0 10px;">
+      <div class="sectionTitle">Auflistung 2</div>
+      <div class="grid2">
+        <div>
+          <label for="listTitle2">Titel</label>
+          <input id="listTitle2" type="text" placeholder="z.B. Details" />
+        </div>
+        <div>
+          <label for="listLines2">Auflistung (eine Zeile = ein Punkt)</label>
+          <textarea id="listLines2" placeholder="Punkt 1&#10;Punkt 2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auflistung 3 -->
+    <div class="card" style="padding:12px; border-radius:14px; margin:0 0 10px;">
+      <div class="sectionTitle">Auflistung 3</div>
+      <div class="grid2">
+        <div>
+          <label for="listTitle3">Titel</label>
+          <input id="listTitle3" type="text" placeholder="z.B. Lieferumfang" />
+        </div>
+        <div>
+          <label for="listLines3">Auflistung (eine Zeile = ein Punkt)</label>
+          <textarea id="listLines3" placeholder="Punkt 1&#10;Punkt 2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auflistung 4 -->
+    <div class="card" style="padding:12px; border-radius:14px; margin:0 0 10px;">
+      <div class="sectionTitle">Auflistung 4</div>
+      <div class="grid2">
+        <div>
+          <label for="listTitle4">Titel</label>
+          <input id="listTitle4" type="text" placeholder="z.B. Hinweise" />
+        </div>
+        <div>
+          <label for="listLines4">Auflistung (eine Zeile = ein Punkt)</label>
+          <textarea id="listLines4" placeholder="Punkt 1&#10;Punkt 2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Auflistung 5 -->
+    <div class="card" style="padding:12px; border-radius:14px; margin:0;">
+      <div class="sectionTitle">Auflistung 5</div>
+      <div class="grid2">
+        <div>
+          <label for="listTitle5">Titel</label>
+          <input id="listTitle5" type="text" placeholder="z.B. Pflege" />
+        </div>
+        <div>
+          <label for="listLines5">Auflistung (eine Zeile = ein Punkt)</label>
+          <textarea id="listLines5" placeholder="Punkt 1&#10;Punkt 2"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KURZ -->
+  <div class="card hidden" id="panelKurz">
+    <div class="sectionTitle">SAP HTML-Kurzbeschrieb Generator</div>
+    <div class="small" style="margin-bottom:10px;">Genau 3 Punkte.</div>
+
+    <label for="k1">Punkt 1</label>
+    <input id="k1" type="text" placeholder="z.B. Sehr leise im Betrieb" />
+
+    <label for="k2" style="margin-top:10px;">Punkt 2</label>
+    <input id="k2" type="text" placeholder="z.B. Energieeffizient" />
+
+    <label for="k3" style="margin-top:10px;">Punkt 3</label>
+    <input id="k3" type="text" placeholder="z.B. Einfache Reinigung" />
+  </div>
+
+  <!-- LINK -->
+  <div class="card hidden" id="panelLink">
+    <div class="sectionTitle">Link-Generator</div>
+    <div class="small" style="margin-bottom:10px;">Aus URL + Text wird ein klickbarer HTML-Link.</div>
+
+    <div class="grid2">
+      <div>
+        <label for="url">URL eingeben</label>
+        <input id="url" type="text" placeholder="www.google.ch oder https://www.google.ch" />
+      </div>
+      <div>
+        <label for="urlText">Was soll dargestellt werden?</label>
+        <input id="urlText" type="text" placeholder="GOOGLE" />
+      </div>
+    </div>
+
+    <div class="small" style="margin-top:10px;">
+      Hinweis: Wenn du nur "www...." eingibst, wird automatisch "https://" ergänzt.
+    </div>
+  </div>
+
+  <!-- OUTPUT -->
+  <div class="card">
+    <div class="sectionTitle">Generiertes HTML</div>
+    <textarea id="out" class="out" readonly placeholder="Hier erscheint das HTML..."></textarea>
+    <div class="small" id="status">Noch nichts generiert.</div>
+    <div class="small" style="margin-top:6px;">Auto-Speichern: Alles wird im Browser gespeichert.</div>
+  </div>
+
+</div>
+
+<!-- Preview Modal -->
+<div class="modal" id="modal">
+  <div class="modalCard">
+    <div class="previewHead">
+      <div class="previewTitle">So sieht's dann aus</div>
+      <button id="btnClose" class="secondary" type="button">Schliessen</button>
+    </div>
+    <div class="previewBody" id="preview"></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+const tabLang = $('tabLang');
+const tabKurz = $('tabKurz');
+const tabLink = $('tabLink');
+
+const panelLang = $('panelLang');
+const panelKurz = $('panelKurz');
+const panelLink = $('panelLink');
+
+const out = $('out');
+const status = $('status');
+
+const btnCopy = $('btnCopy');
+const btnPreview = $('btnPreview');
+const btnClear = $('btnClear');
+
+const modal = $('modal');
+const btnClose = $('btnClose');
+const preview = $('preview');
+
+let activeTab = 'lang';
+const STORAGE_KEY = 'sap_html_generator_allinone_v1_eisblau_full';
+
+function norm(s){
+  return (s ?? '')
+    .replace(/\u202F/g, ' ')
+    .replace(/\u00A0/g, ' ');
+}
+
+function linesToArray(text){
+  return norm(text)
+    .split(/\r?\n/)
+    .map(x => x.trim())
+    .filter(x => x !== '');
+}
+
+function makeListHTML(title, lines, prefixBr){
+  if(lines.length === 0) return '';
+  const pfx = prefixBr ? '<br>' : '';
+  const titlePart = title ? `<P><STRONG>${title}</STRONG></P>` : '';
+  const items = lines.map(x => `<LI>${x}</LI>`).join(' ');
+  return `${pfx}${titlePart}<UL>${items}</UL>`;
+}
+
+function ensureHttps(url){
+  let u = (url || '').trim();
+  if(!u) return '';
+  if(/^https?:\/\//i.test(u)) return u;
+  return 'https://' + u.replace(/^\/+/, '');
+}
+
+function buildLangHTML(){
+  const langText = norm($('lang').value).trim();
+  let langHtml = '';
+  if(langText !== '') langHtml = `<P>${langText}</P>`;
+
+  const lists = [
+    {t: norm($('listTitle1').value).trim(), lines: linesToArray($('listLines1').value)},
+    {t: norm($('listTitle2').value).trim(), lines: linesToArray($('listLines2').value)},
+    {t: norm($('listTitle3').value).trim(), lines: linesToArray($('listLines3').value)},
+    {t: norm($('listTitle4').value).trim(), lines: linesToArray($('listLines4').value)},
+    {t: norm($('listTitle5').value).trim(), lines: linesToArray($('listLines5').value)},
+  ];
+
+  let html = langHtml;
+  let hasAny = (langHtml.trim() !== '');
+
+  for(const L of lists){
+    const part = makeListHTML(L.t, L.lines, hasAny);
+    if(part.trim() !== ''){
+      html += part;
+      hasAny = true;
+    }
+  }
+  return html.trim() ? html : '';
+}
+
+function buildKurzHTML(){
+  const a = norm($('k1').value).trim();
+  const b = norm($('k2').value).trim();
+  const c = norm($('k3').value).trim();
+  const lines = [a,b,c].filter(x => x !== '');
+  if(lines.length === 0) return '';
+  return lines.map(x => `${x}<BR>`).join(' ');
+}
+
+function buildLinkHTML(){
+  const rawUrl = norm($('url').value).trim();
+  const text = norm($('urlText').value).trim();
+  if(!rawUrl || !text) return '';
+  const url = ensureHttps(rawUrl);
+  return `<a href="${url}" style="font-weight: normal;">${text}</a>`;
+}
+
+function buildActiveHTML(){
+  if(activeTab === 'lang') return buildLangHTML();
+  if(activeTab === 'kurz') return buildKurzHTML();
+  return buildLinkHTML();
+}
+
+function setReady(isReady){
+  out.classList.toggle('ready', isReady);
+  status.textContent = isReady ? 'Bereit: du kannst kopieren.' : 'Noch nichts generiert.';
+}
+
+function applyTabUI(){
+  [tabLang, tabKurz, tabLink].forEach(t => t.classList.remove('active'));
+  panelLang.classList.add('hidden');
+  panelKurz.classList.add('hidden');
+  panelLink.classList.add('hidden');
+
+  if(activeTab === 'lang'){
+    tabLang.classList.add('active');
+    panelLang.classList.remove('hidden');
+  }else if(activeTab === 'kurz'){
+    tabKurz.classList.add('active');
+    panelKurz.classList.remove('hidden');
+  }else{
+    tabLink.classList.add('active');
+    panelLink.classList.remove('hidden');
+  }
+
+  refresh();
+}
+
+function getState(){
+  return {
+    activeTab,
+    lang: $('lang').value,
+    listTitle1: $('listTitle1').value, listLines1: $('listLines1').value,
+    listTitle2: $('listTitle2').value, listLines2: $('listLines2').value,
+    listTitle3: $('listTitle3').value, listLines3: $('listLines3').value,
+    listTitle4: $('listTitle4').value, listLines4: $('listLines4').value,
+    listTitle5: $('listTitle5').value, listLines5: $('listLines5').value,
+    k1: $('k1').value, k2: $('k2').value, k3: $('k3').value,
+    url: $('url').value, urlText: $('urlText').value,
+  };
+}
+
+function setState(s){
+  activeTab = s.activeTab || 'lang';
+  $('lang').value = s.lang ?? '';
+  $('listTitle1').value = s.listTitle1 ?? ''; $('listLines1').value = s.listLines1 ?? '';
+  $('listTitle2').value = s.listTitle2 ?? ''; $('listLines2').value = s.listLines2 ?? '';
+  $('listTitle3').value = s.listTitle3 ?? ''; $('listLines3').value = s.listLines3 ?? '';
+  $('listTitle4').value = s.listTitle4 ?? ''; $('listLines4').value = s.listLines4 ?? '';
+  $('listTitle5').value = s.listTitle5 ?? ''; $('listLines5').value = s.listLines5 ?? '';
+  $('k1').value = s.k1 ?? ''; $('k2').value = s.k2 ?? ''; $('k3').value = s.k3 ?? '';
+  $('url').value = s.url ?? ''; $('urlText').value = s.urlText ?? '';
+}
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(getState())); }catch{}
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return;
+    setState(JSON.parse(raw));
+  }catch{}
+}
+
+function refresh(){
+  const html = buildActiveHTML();
+  out.value = html;
+  setReady(html.trim() !== '');
+  saveState();
+}
+
+tabLang.addEventListener('click', ()=>{ activeTab='lang'; applyTabUI(); });
+tabKurz.addEventListener('click', ()=>{ activeTab='kurz'; applyTabUI(); });
+tabLink.addEventListener('click', ()=>{ activeTab='link'; applyTabUI(); });
+
+btnCopy.addEventListener('click', async ()=>{
+  const val = (out.value || '').trim();
+  if(!val) return;
+
+  const old = btnCopy.textContent;
+  try{
+    await navigator.clipboard.writeText(val);
+  }catch{
+    out.focus(); out.select(); document.execCommand('copy');
+  }
+  btnCopy.textContent = 'Kopiert ✅';
+  setTimeout(()=> btnCopy.textContent = old, 900);
+});
+
+btnPreview.addEventListener('click', ()=>{
+  const html = (out.value || '').trim();
+  if(!html) return;
+  preview.innerHTML = html;
+  modal.classList.add('open');
+});
+
+btnClose.addEventListener('click', ()=> modal.classList.remove('open'));
+modal.addEventListener('click', (e)=>{ if(e.target === modal) modal.classList.remove('open'); });
+
+btnClear.addEventListener('click', ()=>{
+  if(activeTab === 'lang'){
+    $('lang').value = '';
+    for(let i=1;i<=5;i++){
+      $('listTitle'+i).value = '';
+      $('listLines'+i).value = '';
+    }
+  }else if(activeTab === 'kurz'){
+    $('k1').value = ''; $('k2').value = ''; $('k3').value = '';
+  }else{
+    $('url').value = ''; $('urlText').value = '';
+  }
+  refresh();
+});
+
+[
+  $('lang'),
+  $('listTitle1'), $('listLines1'),
+  $('listTitle2'), $('listLines2'),
+  $('listTitle3'), $('listLines3'),
+  $('listTitle4'), $('listLines4'),
+  $('listTitle5'), $('listLines5'),
+  $('k1'), $('k2'), $('k3'),
+  $('url'), $('urlText')
+].forEach(el => el.addEventListener('input', refresh));
+
+loadState();
+applyTabUI();
+</script>
+
+</body>
+</html>
