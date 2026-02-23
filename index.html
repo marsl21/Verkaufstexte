@@ -438,9 +438,22 @@ function linesToArray(text){
 }
 
 function makeListHTML(title, lines, prefixBr){
-  if(lines.length === 0) return '';
+  const t = (title || '').trim();
+  const hasTitle = t !== '';
+  const hasLines = Array.isArray(lines) && lines.length > 0;
+
+  // wenn weder Titel noch Punkte: nix ausgeben
+  if(!hasTitle && !hasLines) return '';
+
   const pfx = prefixBr ? '<br>' : '';
-  const titlePart = title ? `<P><STRONG>${title}</STRONG></P>` : '';
+  const titlePart = hasTitle ? `<P><STRONG>${t}</STRONG></P>` : '';
+
+  // nur Titel (ohne UL)
+  if(hasTitle && !hasLines){
+    return `${pfx}${titlePart}`;
+  }
+
+  // Titel optional + UL
   const items = lines.map(x => `<LI>${x}</LI>`).join(' ');
   return `${pfx}${titlePart}<UL>${items}</UL>`;
 }
